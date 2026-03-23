@@ -1,0 +1,102 @@
+# 真实交易测试配置
+
+# Trading configuration (use real trading)
+trading:
+  enabled: true
+  max_position_size: 50  # 小金额测试
+  min_profit_margin: 0.02
+  max_open_positions: 5
+  stop_loss_percentage: 0.1
+  max_daily_loss: 20  # 更小的损失限制
+  enable_auto_trade: false  # 测试阶段不自动执行
+
+# Real trading configuration (NEW)
+real_trading:
+  enabled: true  # 启用真实交易功能
+  private_key: ""  # 从环境变量读取 POLYGON_WALLET_PRIVATE_KEY
+  polygon_rpc: "https://polygon-rpc.com"  # 使用免费的RPC
+  auto_execute: false  # 谨慎使用！
+
+# Agent configuration (minimal for testing)
+agents:
+  market_scout:
+    enabled: true
+    scan_interval: 120  # 降低扫描频率
+    max_markets: 20  # 减少扫描数量
+
+  llm_analyst:
+    enabled: true
+    model: "nvidia/nemotron-nano-9b-v2:free"
+    max_analysis_time: 30
+    temperature: 0.3
+
+  strategy_executor:
+    enabled: true
+    auto_execute: false  # 测试时手动执行
+    confirm_before_trade: true
+    max_concurrent_trades: 1  # 只允许一个交易
+
+  risk_manager:
+    enabled: true
+    monitor_interval: 30  # 减少检查频率
+    auto_stop_loss: true
+    max_position_percentage: 0.2  # 更保守的风险控制
+
+  trade_logger:
+    enabled: true
+    log_to_csv: true
+    log_to_db: true
+    generate_daily_report: true
+
+# Strategy configuration (minimal for testing)
+strategies:
+  liquidity_absorption:
+    enabled: false  # 测试时禁用复杂策略
+
+  orderbook_arbitrage:
+    enabled: true
+    spread_threshold: 0.05
+    min_profit_after_fees: 0.02
+
+  structural_spread:
+    enabled: false
+
+  no_farming:
+    enabled: false
+
+  long_tail:
+    enabled: false
+
+  spread_farming:
+    enabled: false
+
+  high_prob:
+    enabled: false
+
+# Polymarket configuration
+polymarket:
+  gamma_api_url: "https://gamma-api.polymarket.com"
+  clob_api_url: "https://clob.polymarket.com"
+  chainstack_node: ""  # 使用默认RPC
+  chain_id: 137
+
+# Database configuration
+database:
+  markets_db: "database/markets.db"
+  trades_db: "database/trades.db"
+  agent_state_db: "database/agent_state.db"
+
+# LLM configuration
+llm:
+  provider: "openrouter"
+  api_key: ""  # 从环境变量读取 OPENROUTER_API_KEY
+  model: "nvidia/nemotron-nano-9b-v2:free"
+  max_tokens: 1000
+  timeout: 30
+
+# Logging configuration
+logging:
+  level: "INFO"
+  file: "logs/trading_bot.log"
+  max_size_mb: 10
+  backup_count: 5
