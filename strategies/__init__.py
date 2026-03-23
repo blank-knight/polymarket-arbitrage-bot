@@ -8,6 +8,7 @@ from .arbitrage_strategy import ArbitrageStrategy
 from .hedge_strategy import HedgeStrategy
 from .trend_strategy import TrendStrategy
 from .strategy_manager import StrategyManager, StrategyType
+from .hedge_executor import HedgeExecutor, HedgePair, HedgeExecutionResult
 
 __all__ = [
     "BaseStrategy",
@@ -17,5 +18,8 @@ __all__ = [
     "HedgeStrategy",
     "TrendStrategy",
     "StrategyManager",
-    "StrategyType"
+    "StrategyType",
+    "HedgeExecutor",
+    "HedgePair",
+    "HedgeExecutionResult"
 ]

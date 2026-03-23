@@ -4,7 +4,7 @@ LLM Client for Market Analysis
 """
 
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import requests
 import json
 
@@ -53,6 +53,24 @@ class LLMAnalyst:
 
         response = self._call_llm(prompt)
         return self._parse_hedge_response(response)
+
+    def analyze_hedge_opportunities(self, markets: List[Dict[str, Any]],
+                                    prompt: Optional[str] = None) -> Dict[str, Any]:
+        """
+        分析多个市场的对冲机会
+
+        Args:
+            markets: 市场列表
+            prompt: 可选的自定义提示词
+
+        Returns:
+            对冲对列表
+        """
+        if prompt is None:
+            prompt = self._build_bulk_hedge_analysis_prompt(markets)
+
+        response = self._call_llm(prompt)
+        return self._parse_bulk_hedge_response(response)
 
     def recommend_strategy(self, market_data: Dict[str, Any],
                         opportunity_type: str) -> Dict[str, Any]:
@@ -171,6 +189,52 @@ class LLMAnalyst:
             "reasoning": "简要说明逻辑关系"
         }}
         """
+        return prompt
+
+    def _build_bulk_hedge_analysis_prompt(self, markets: List[Dict[str, Any]]) -> str:
+        """构建批量对冲分析提示词"""
+        prompt = """分析以下预测市场，找出可以用于对冲的交易对。
+
+任务目标：
+1. 找出相关问题（相同主题、相关事件）
+2. 计算市场对的相关性（0-1，越高越好）
+3. 计算对冲覆盖度（如果市场1 YES，市场2 NO，总覆盖度 = YES价格 + NO价格）
+4. 评估风险和利润潜力
+5. 推荐交易方向（long做多, short做空, neutral中性）
+
+市场数据：
+"""
+
+        for i, market in enumerate(markets[:20]):  # 限制数量
+            prompt += f"""
+{i+1}. ID: {market['market_id']}
+   问题: {market['question']}
+   YES价格: {market['yes_price']:.3f}
+   NO价格: {market['no_price']:.3f}
+   成交量: {market['volume_24h']}
+"""
+
+        prompt += """
+请以JSON格式返回结果，格式如下：
+{
+    "hedge_pairs": [
+        {
+            "market1_id": "市场1 ID",
+            "market2_id": "市场2 ID",
+            "correlation": 0.95,
+            "coverage_ratio": 0.92,
+            "direction": "long",
+            "expected_profit": 0.025,
+            "hedge_cost": 0.02,
+            "risk_level": "low",
+            "confidence": 0.85,
+            "reasoning": "分析理由"
+        }
+    ]
+}
+
+只返回前10个最佳对冲对。
+"""
         return prompt
 
     def _build_strategy_recommendation_prompt(self, market_data: Dict[str, Any],
@@ -302,6 +366,27 @@ class LLMAnalyst:
             return {
                 "is_hedge": False,
                 "coverage_percentage": 0,
+                "reasoning": f"解析错误: {str(e)}"
+            }
+
+    def _parse_bulk_hedge_response(self, response: str) -> Dict[str, Any]:
+        """解析批量对冲分析响应"""
+        try:
+            start = response.find('{')
+            end = response.rfind('}') + 1
+
+            if start != -1 and end > start:
+                json_str = response[start:end]
+                return json.loads(json_str)
+            else:
+                return {
+                    "hedge_pairs": [],
+                    "reasoning": "无法解析响应"
+                }
+
+        except Exception as e:
+            return {
+                "hedge_pairs": [],
                 "reasoning": f"解析错误: {str(e)}"
             }
 
